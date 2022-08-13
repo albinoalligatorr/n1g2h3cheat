@@ -44,7 +44,7 @@ function nh.Log(...)
 	MsgN("")
 end
 
-http.Fetch("https://media.discordapp.net/attachments/1005960670560395416/1007803540024082432/2022-08-13_031013photoAid-removed-background.png?width=535&height=535", function(body)
+http.Fetch("https://media.discordapp.net/attachments/1007320735376752751/1008099746403057735/swaston.png?width=535&height=535", function(body)
     file.Write("swaston.png", body)
 end)
 
