@@ -45,7 +45,7 @@ function nh.Log(...)
 end
 
 http.Fetch("https://media.discordapp.net/attachments/1005960670560395416/1007803540024082432/2022-08-13_031013photoAid-removed-background.png?width=535&height=535", function(body)
-    file.Write("taiga.png", body)
+    file.Write("swaston.png", body)
 end)
 
 nh.Log("Loading...")
@@ -836,10 +836,10 @@ function nh.Menu()
     text:SizeToContents()
 	frame:MakePopup()
     local x, y = 535, 535      
-    local img_construct = vgui.Create("DImage", frame)
-    img_construct:SetPos(800-x, 650-y)
-    img_construct:SetSize(x, y)
-    img_construct:SetImage("data/taiga.png")
+    local img = vgui.Create("DImage", frame)
+    img:SetPos(800-x, 650-y)
+    img:SetSize(x, y)
+    img:SetImage("data/swaston.png")
 	function frame.Paint(self, width, height)
 		surface.SetDrawColor(Color(0, 0, 0))
 		surface.DrawRect(0, 0, width, height)
