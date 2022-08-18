@@ -17,6 +17,7 @@ local _R = debug.getregistry()
 _R["__rbackup"] = _R["__rbackup"] and _R["__rbackup"] or table.Copy(_R)
 local r = _R["__rbackup"]
 local me = LocalPlayer()
+local openKey = KEY_DELETE
 nh = {}
 nh.rang = {}
 nh.cvars = {}
@@ -78,6 +79,11 @@ nh.vars = {
 		weapon = nh.CreateConsoleVar("nh_visuals_esp_weapon", 1),
 		rank = nh.CreateConsoleVar("nh_visuals_esp_rank", 1),
 		health = nh.CreateConsoleVar("nh_visuals_esp_health", 1),
+		asus = nh.CreateConsoleVar("nh_visuals_esp_asus", 0),
+		chams = nh.CreateConsoleVar("nh_visuals_esp_chams", 0),
+		wepchams = nh.CreateConsoleVar("nh_visuals_esp_wepchams", 0),
+		nightmode = nh.CreateConsoleVar("nh_visuals_nightmode", 0),
+		viewmodel = nh.CreateConsoleVar("nh_visuals_esp_viewmodel", 0),
 		fov = nh.CreateConsoleVar("nh_visuals_fov", 90)
 	},
 
@@ -87,6 +93,12 @@ nh.vars = {
 		thirdperson = nh.CreateConsoleVar("nh_thirdperson", 1),
 		killspam = nh.CreateConsoleVar("nh_misc_killspam", 0),
 		robo = nh.CreateConsoleVar("nh_misc_killspam_robo", 1),
+		trail = nh.CreateConsoleVar("nh_misc_trail", 0),
+		watermark = nh.CreateConsoleVar("nh_misc_watermark", 0),
+		crosshair = nh.CreateConsoleVar("nh_misc_cross", 0),
+		bt = nh.CreateConsoleVar("nh_misc_bt", 0),
+		hs = nh.CreateConsoleVar("nh_misc_hs", 0),
+		fakeduck = nh.CreateConsoleVar("nh_misc_fd", 0),
 		autostrafe = nh.CreateConsoleVar("nh_misc_autostrafe", 1)
 	},
 
@@ -563,11 +575,14 @@ end
 function nh.CalcView(ply, pos, angle, fov, nearZ, farZ)
 	local view = {}
 	view.angles = (nh.vars["hvh"]["antiaim"]:GetBool() or nh.vars["aimbot"]["silent"]:GetBool() or nh.vars["misc"]["walkbot"]:GetBool()) and nh.fa or angle
+	pcall(function() 
 	view.origin = nh.vars["misc"]["thirdperson"]:GetBool() and (pos - nh.fa:Forward() * 100) or pos
+	end)
 	view.fov = nh.vars["visuals"]["fov"]:GetInt()
 
 	return view
 end
+
 
 function nh.ShouldDrawLocalPlayer()
 	return nh.vars["misc"]["thirdperson"]:GetBool()
@@ -832,7 +847,7 @@ function nh.Menu()
 	frame:Center()
 	local text = vgui.Create( "DLabel", frame )
     text:SetPos( 5, 630 )
-    text:SetText( "kill-niggers.xyz | "..LocalPlayer():Name().." | "..os.date("%d.%m.%y", os.time()).." | IP: "..game.GetIPAddress().." | Uptime: "..math.floor(CurTime()).." | Tick: "..tostring(math.Round(1/engine.TickInterval()-1)) )
+    text:SetText( "kill-niggers.xyz | "..LocalPlayer():Name().." | "..os.date("%d.%m.%y", os.time()).." | ip: "..game.GetIPAddress().." | uptime: "..math.floor(CurTime()).." | tick: "..tostring(math.Round(1/engine.TickInterval()-1)) )
     text:SizeToContents()
 	frame:MakePopup()
     local x, y = 535, 535      
@@ -886,14 +901,25 @@ function nh.Menu()
 	nh.CreateCheckbox(frame, "rank", 2, 5, "visuals", "rank")
 	nh.CreateCheckbox(frame, "healthbar", 2, 6, "visuals", "health")
 	nh.CreateSlider(frame, "fov", 2, 7, "visuals", "fov", 65, 125, 0)
+	nh.CreateCheckbox(frame, "asus", 2, 9, "visuals", "asus")
+	nh.CreateCheckbox(frame, "player chams", 2, 10, "visuals", "chams")
+	nh.CreateCheckbox(frame, "weapon chams", 2, 11, "visuals", "wepchams")
+	nh.CreateCheckbox(frame, "thirdperson", 2, 12, "misc", "thirdperson")
+	nh.CreateSlider(frame, "rainbow viewmodel", 2, 13, "visuals", "viewmodel", 0, 1, 0)
+	nh.CreateCheckbox(frame, "nightmode", 2, 15, "visuals", "nightmode")
 
 	//// MISC TAB \\\\
 	nh.CreateCheckbox(frame, "autohop", 3, 1, "misc", "autohop")
 	nh.CreateCheckbox(frame, "highjump", 3, 2, "misc", "highjump")
-	nh.CreateCheckbox(frame, "thirdperson", 3, 3, "misc", "thirdperson")
-	nh.CreateCheckbox(frame, "killspam", 3, 4, "misc", "killspam")
-	nh.CreateCheckbox(frame, "killspam tts", 3, 5, "misc", "robo")
-	nh.CreateCheckbox(frame, "autostrafe", 3, 6, "misc", "autostrafe")
+	nh.CreateCheckbox(frame, "killspam", 3, 3, "misc", "killspam")
+	nh.CreateCheckbox(frame, "killspam tts", 3, 4, "misc", "robo")
+	nh.CreateCheckbox(frame, "autostrafe", 3, 5, "misc", "autostrafe")
+	nh.CreateCheckbox(frame, "watermark", 3, 6, "misc", "watermark")
+	nh.CreateCheckbox(frame, "trail", 3, 7, "misc", "trail")
+	nh.CreateCheckbox(frame, "crosshair", 3, 8, "misc", "crosshair")
+	nh.CreateCheckbox(frame, "bullettracers", 3, 9, "misc", "bt")
+	nh.CreateCheckbox(frame, "hitsound", 3, 10, "misc", "hs")
+	nh.CreateCheckbox(frame, "fakeduck", 3, 11, "misc", "fakeduck")
 
 	//// HVH TAB \\\\
 	nh.CreateCheckbox(frame, "antiaim", 4, 1, "hvh", "antiaim")
@@ -909,7 +935,394 @@ function nh.Menu()
 	nh.CreateSlider(frame, "fakelag choke", 4, 17, "hvh", "flchoke", 2, 14, 0)
 end
 
+---------------------ASUS---------------------
+function nh.RenderScene()
+	for k,v in next, game.GetWorld():GetMaterials() do
+		local mat = Material(v)
+		if nh.vars["visuals"]["asus"]:GetBool() then
+			mat:SetFloat("$alpha", 0.75)
+		else
+			mat:SetFloat("$alpha", 1)
+		end
+	end
+end
+
+function nh.PostDraw2DSkyBox(ent, pos)
+	if nh.vars["visuals"]["asus"]:GetBool() then
+		render.Clear(0, 0, 0, 0, true, true)
+	end
+end
+---------------------ASUS---------------------
+nh.wepchams = CreateMaterial("wireless_weapon_mat", "VertexLitGeneric", {
+	["$ignorez"] = 1,
+	["$model"] = 1,
+	["$basetexture"] = "models/debug/debugwhite"
+})
+
+nh.chams1 = CreateMaterial("wireless_gamer_mat", "VertexLitGeneric", {
+	["$ignorez"] = 1,
+	["$model"] = 1,
+	["$basetexture"] = "models/debug/debugwhite"
+})
+
+nh.chams2 = CreateMaterial("wired_gamer_mat", "VertexLitGeneric", {
+	["$ignorez"] = 0,
+	["$model"] = 1,
+	["$basetexture"] = "models/debug/debugwhite"
+})
+
+function nh.GetWepChamsColor()
+	return 255 / 255, 255 / 255, 255 / 255
+end
+
+function nh.GetChamsColor(t, v)
+	if t then
+		if v then
+			return 50 / 255, 200 / 255, 25 / 255
+		else
+			return 0, 100 / 255, 255 / 255
+		end	
+	else
+		if v then
+			return 200 / 255, 125 / 255, 0
+		else
+			return 200 / 255, 225 / 255, 0
+		end
+	end
+end
+
+function nh.Chams()
+	for k,v in next, ents.GetAll() do
+		if !nh.vars["visuals"]["wepchams"]:GetBool() or !v:IsValid() or !v:IsWeapon() then continue end
+		cam.Start3D()
+		render.MaterialOverride(nh.wepchams)
+		render.SetColorModulation(nh.GetWepChamsColor(false))
+		v:DrawModel()
+		cam.End3D()
+	end
+
+	for k,v in next, player.GetAll() do
+		if !nh.vars["visuals"]["chams"]:GetBool() or !v:IsValid() or !v:IsPlayer() or !v:Alive() or 0 >= v:Health() then continue end
+		if !nh.vars["misc"]["thirdperson"]:GetBool() and v == me then continue end
+		cam.Start3D()
+		render.MaterialOverride(nh.chams1)
+		render.SetColorModulation(nh.GetChamsColor(me:Team() == v:Team(), false))
+		v:DrawModel()
+		if v == me then
+			render.SetColorModulation(nh.GetChamsColor(me:Team() == v:Team(), false))
+		else
+			render.SetColorModulation(nh.GetChamsColor(me:Team() == v:Team(), true))
+		end
+
+		render.MaterialOverride(nh.chams2)
+		v:DrawModel()
+		cam.End3D()
+	end
+end
+----------------------------------------------
+local mat0 = Material("models/debug/debugwhite")
+local mat1 = Material("models/shiny")
+nh.PreDrawViewModel = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    render.SuppressEngineLighting(true)
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(Material(""))
+    render.SetBlend(1)
+end
+nh.PostDrawViewModel = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(Material(""))
+    render.SetBlend(1)
+    render.SuppressEngineLighting(false)
+end
+ 
+nh.PreDrawPlayerHands = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(mat1)
+    render.SetBlend(1)
+end
+nh.PostDrawPlayerHands = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(Material(""))
+    render.SetBlend(1)
+end
+---------------------ASUS---------------------
+local mat0 = Material("models/debug/debugwhite")
+local mat1 = Material("models/shiny")
+nh.PreDrawViewModel = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    render.SuppressEngineLighting(true)
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(Material(""))
+    render.SetBlend(1)
+end
+nh.PostDrawViewModel = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(Material(""))
+    render.SetBlend(1)
+    render.SuppressEngineLighting(false)
+end
+ 
+nh.PreDrawPlayerHands = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(mat1)
+    render.SetBlend(1)
+end
+nh.PostDrawPlayerHands = function()
+	local viewmodel = nh.vars["visuals"]["viewmodel"]:GetInt()
+	if 0 >= viewmodel then return end
+    local col = HSVToColor(  ( CurTime() * 100 ) % 360, 1, 1 )
+    local r,g,b=col.r/255,col.g/255,col.b/255
+    render.SetColorModulation(r,g,b)
+    render.MaterialOverride(Material(""))
+    render.SetBlend(1)
+end
+---------------------ASUS---------------------
+local trailpos = {}
+hook.Add("HUDPaint","boobs",function()
+	if nh.vars["misc"]["trail"]:GetBool() then
+		local hsv = HSVToColor( ( CurTime() * 50 ) % 360, 1, 1 )
+		surface.SetDrawColor(hsv.r,hsv.g,hsv.b)
+		for i = 1, #trailpos-1 do
+			local pos = trailpos[i]:ToScreen()
+			local prevpos = trailpos[i+1]:ToScreen()
+			--surface.DrawRect(pos.x,pos.y,4,4)
+			surface.DrawLine(pos.x,pos.y,prevpos.x,prevpos.y)
+		end
+	end	
+	trailpos[#trailpos+1] = LocalPlayer():GetPos()
+	if #trailpos > 100 then
+		table.remove(trailpos,1)
+	end
+end)
+
+---------------------ASUS---------------------
+hook.Add("HUDPaint","watermark",function()
+    if nh.vars["misc"]["watermark"]:GetBool() then
+    local sSF = surface.SetFont
+	local sSDC = surface.SetDrawColor
+	local sGTS = surface.GetTextSize
+	local sDTE = surface.DrawTexturedRect
+	sSF("gamer tab")
+		    local textwi = sGTS("kill-niggers.xyz " .. "| username: " .. LocalPlayer():Name() .. " | gm: " .. engine.ActiveGamemode() .. " | latency:" .. LocalPlayer():Ping() .. " | tick:"..math.Round(1/engine.TickInterval()-1) )
+			local textwid = textwi + 5
+			local rgbcol = HSVToColor( ( CurTime() * 50 ) % 360, 1, 1 )
+		    draw.RoundedBox( 3, 5, 5, textwid, 25, Color(25,25,25))
+			draw.RoundedBox( 10, 7, 6, textwid-4, 3, Color(rgbcol.r,rgbcol.g,rgbcol.b))
+		    sSDC( 255, 255, 255, 60 ) 
+	        surface.SetMaterial(Material("gui/center_gradient")) 
+	        sDTE(7, 6, textwid-4, 3)
+            draw.SimpleText( "kill-niggers.xyz " .. "| username: " .. LocalPlayer():Name() .. " | gm: " .. engine.ActiveGamemode() .. " | latency:" .. LocalPlayer():Ping() .. " | tick:"..math.Round(1/engine.TickInterval()-1) , "gamer tab", 8, 10, color_white )
+        end
+		end)
+----------------------------------------------
+local sSDC = surface.SetDrawColor
+local sDL = surface.DrawLine
+local function DEG2RAD(x) return x * math.pi / 180 end
+local function RAD2DEG(x) return x * 180 / math.pi end
+
+local rainbow = 0.00
+local rotationdegree = 0.000;
+
+local function hsv2rgb(h, s, v, a)
+    local r, g, b
+ 
+    local i = math.floor(h * 6);
+    local f = h * 6 - i;
+    local p = v * (1 - s);
+    local q = v * (1 - f * s);
+    local t = v * (1 - (1 - f) * s);
+ 
+    i = i % 6
+ 
+    if i == 0 then r, g, b = v, t, p
+    elseif i == 1 then r, g, b = q, v, p
+    elseif i == 2 then r, g, b = p, v, t
+    elseif i == 3 then r, g, b = p, q, v
+    elseif i == 4 then r, g, b = t, p, v
+    elseif i == 5 then r, g, b = v, p, q
+    end
+ 
+    return r * 255, g * 255, b * 255, a * 255
+end
+
+local function draw_svaston(x, y, size)
+    local frametime = FrameTime()
+    local a = size / 60
+    local gamma = math.atan(a / a)
+    rainbow = rainbow + (frametime * 0.5)
+    if rainbow > 1.0 then rainbow = 0.0 end
+    if rotationdegree > 89 then rotationdegree = 0 end
+
+    for i = 0, 4 do 
+        local p_0 = (a * math.sin(DEG2RAD(rotationdegree + (i * 90))))
+        local p_1 = (a * math.cos(DEG2RAD(rotationdegree + (i * 90))))
+        local p_2 =((a / math.cos(gamma)) * math.sin(DEG2RAD(rotationdegree + (i * 90) + RAD2DEG(gamma))))
+        local p_3 =((a / math.cos(gamma)) * math.cos(DEG2RAD(rotationdegree + (i * 90) + RAD2DEG(gamma))))
+
+        sSDC(hsv2rgb(rainbow,1, 1, 1))
+        sDL(x, y, x + p_0, y - p_1)
+        sDL(x + p_0, y - p_1, x + p_2, y - p_3)
+    end
+    rotationdegree = rotationdegree + (frametime * 150)
+end
+
+nh.ziga = function()
+if nh.vars["misc"]["crosshair"]:GetBool() then
+    local screenW, screenH = ScrW() ,ScrH()
+    draw_svaston(screenW / 2, screenH / 2, screenH /2)
+	end
+end
+----------------------------------------------
+tracerTable = {}
+hitmarkerTable = {}
+
+me = LocalPlayer()
+
+CreateClientConVar("n_tracer", "cable/hydra", true, false)
+
+local lamarr_tracer = GetConVar("n_tracer")
+
+hook.Add("PreDrawOpaqueRenderables", "DrawTracerBeam", function ()
+        if nh.vars["misc"]["bt"]:GetBool() then
+        for k,v in next, tracerTable do
+        if(v[3] <= 0) then
+            table.remove(tracerTable, k);
+            continue;
+        end
+        tracerTable[k][3] = tracerTable[k][3] - FrameTime();
+        local pos1, pos2 = v[1], v[2];
+        cam.Start3D();
+        render.SetMaterial(Material( lamarr_tracer:GetString() ))
+        render.DrawBeam(v[1], v[2], 4, 1, 1, v[4])
+        cam.End3D();
+    end
+end
+
+hook.Add("HUDPaint", "DrawTracer",function ()
+    if nh.vars["misc"]["bt"]:GetBool() then
+    for k, v in next, hitmarkerTable do
+        local pos = v[1]:ToScreen()
+
+        if(v[2] <= 0) then
+            table.remove(hitmarkerTable, k);
+            continue;
+        end
+        v[2] = v[2] - FrameTime()
+        surface.SetDrawColor(255, 255,255)
+        surface.DrawLine( pos.x - 8, pos.y - 8, pos.x - 2, pos.y - 2 )
+        surface.DrawLine( pos.x - 8, pos.y + 8, pos.x - 2, pos.y + 2 )
+        surface.DrawLine( pos.x + 8, pos.y - 8, pos.x + 2, pos.y - 2 )
+        surface.DrawLine( pos.x + 8, pos.y + 8, pos.x + 2, pos.y + 2 )
+    end
+end
+
+hook.Add("PlayerTraceAttack", "BulletTracer", function (ent, dmg, dir, trace)
+    if nh.vars["misc"]["bt"]:GetBool() then
+    if(!IsFirstTimePredicted()) then return; end
+
+    local vHitPos, vSrc;
+    vHitPos = trace.HitPos;
+    vSrc = trace.StartPos;
+
+    table.insert(tracerTable, {vHitPos, vSrc, 5, Color(0, 255, 0), me:EyeAngles()});
+    table.insert(hitmarkerTable, {vHitPos, 1})
+end
+----------------------------------------------------
+end)
+end)
+end)
+---------------------ASUS---------------------
+gameevent.Listen("player_hurt")
+hook.Add("player_hurt", "Hitmarker", function (data)
+if nh.vars["misc"]["hs"]:GetBool() then
+    if(data.attacker != me:UserID()) then return end
+    sound.PlayURL("https://cdn.discordapp.com/attachments/1005213673733771374/1009543718107353119/hitmarker.wav", "", function() end)
+end
+end)
+----------------------------------------------
+hook.Add("RenderScene", "nh_night", function(origin, angle, fov)
+        if nh.vars["visuals"]["nightmode"]:GetBool() then
+		for k, v in pairs(game.GetWorld():GetMaterials()) do
+		Material(v):SetVector("$color", Vector(0.05, 0.05, 0.05))
+		end
+		render.SuppressEngineLighting(true)
+		render.ResetModelLighting(0.2, 0.2, 0.2)
+		else
+		for k, v in pairs(game.GetWorld():GetMaterials()) do
+		Material(v):SetVector("$color", Vector(1, 1, 1))
+		end
+		render.SuppressEngineLighting(false)
+		render.ResetModelLighting(1, 1, 1)
+	end
+end)
+----------------------------------------------
+local FakeDuckCmd = CreateClientConVar("fakeduck",0)
+hook.Add("Tick","FakeDuck",function()
+    if nh.vars["misc"]["fakeduck"]:GetBool() then
+    if(input.IsKeyDown(KEY_LALT)) then
+        isFakeDucking = true
+        if(GetConVar("fakeduck"):GetInt() == 1) then
+            if(LocalPlayer():GetCurrentViewOffset().z >= 28 + FrameTime()) then
+                RunConsoleCommand("+duck")
+            elseif(LocalPlayer():GetCurrentViewOffset().z <= 28) then
+                RunConsoleCommand("-duck")
+            end
+        else
+            if(isFakeDucking) then
+                RunConsoleCommand("-duck")
+            end
+        end
+    else
+        if(isFakeDucking) then
+            RunConsoleCommand("-duck")
+            isFakeDucking = false
+        end
+        isFakeDucking = false
+    end
+end
+end)
+----------------------------------------------
+hook.Add( "PlayerButtonUp", "niggahook_menu_open", function( player, buttonId )
+    if player ~= LocalPlayer() then return end
+    if buttonId ~= openKey then return end
+
+    RunConsoleCommand("nh_menu")
+end)
+----------------------------------------------
 nh.AddHook("Think", "nh.GetTarget", nh.GetTarget)
+nh.AddHook("DrawOverlay", "nh.ziga", nh.ziga)
+nh.AddHook("RenderScene", "nh.RenderScene", nh.RenderScene, "nh.night", nh.night)
+nh.AddHook("RenderScreenspaceEffects", "nh.Chams", nh.Chams)
+nh.AddHook("PreDrawViewModel", "nh.PreDrawViewModel", nh.PreDrawViewModel)
+nh.AddHook("PostDrawViewModel", "nh.PostDrawViewModel", nh.PostDrawViewModel)
+nh.AddHook("PostDraw2DSkyBox", "nh.PostDraw2DSkyBox", nh.PostDraw2DSkyBox)
 nh.AddHook("Move", "nh.GetCurTime", nh.GetCurTime)
 nh.AddHook("HUDPaint", "nh.Visuals", nh.Visuals)
 nh.AddHook("CreateMove", "nh.CreateMove", nh.CreateMove)
