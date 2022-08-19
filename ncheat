@@ -17,7 +17,6 @@ local _R = debug.getregistry()
 _R["__rbackup"] = _R["__rbackup"] and _R["__rbackup"] or table.Copy(_R)
 local r = _R["__rbackup"]
 local me = LocalPlayer()
-local openKey = KEY_DELETE
 nh = {}
 nh.rang = {}
 nh.cvars = {}
@@ -1309,12 +1308,6 @@ hook.Add("Tick","FakeDuck",function()
 end
 end)
 ----------------------------------------------
-hook.Add( "PlayerButtonUp", "niggahook_menu_open", function( player, buttonId )
-    if player ~= LocalPlayer() then return end
-    if buttonId ~= openKey then return end
-
-    RunConsoleCommand("nh_menu")
-end)
 ----------------------------------------------
 nh.AddHook("Think", "nh.GetTarget", nh.GetTarget)
 nh.AddHook("DrawOverlay", "nh.ziga", nh.ziga)
